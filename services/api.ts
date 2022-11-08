@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { parseCookies, setCookie } from 'nookies'
 import { signOut } from '../contexts/AuthContext';
+import { AuthTokenError } from './errors/AuthTokenError';
 
 interface AxiosErrorResponse {
     code?: string;
@@ -57,7 +58,7 @@ export function setupAPIClient(ctx = undefined) {
                         failedRequestsQueue.forEach(request => request.onFailure(err))
                         failedRequestsQueue = []
 
-                        if (process.browser){
+                        if (typeof window === "undefined"){
                             signOut()
                         }
                         
@@ -80,8 +81,10 @@ export function setupAPIClient(ctx = undefined) {
                 })
     
                 } else {
-                    if (process.browser){
+                    if (typeof window === "undefined"){
                         signOut()
+                    } else {
+                        return Promise.reject(new AuthTokenError())
                     }
     
                 }
